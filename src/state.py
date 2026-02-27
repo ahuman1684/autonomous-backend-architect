@@ -21,3 +21,4 @@ class GraphState(TypedDict):
     review_feedback: Annotated[list[str], add]
     iterations: int
     final_status: str
+    output_dir: str  # Path to the directory where generated files are written
