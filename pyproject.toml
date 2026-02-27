@@ -23,9 +23,13 @@ search = [
     "langchain-community>=0.3.0",
     "tavily-python>=0.4.0",
 ]
+ui = [
+    "streamlit>=1.38.0",
+]
 all = [
-    "autonomous-backend-architect[dev,search]",
+    "autonomous-backend-architect[dev,search,ui]",
 ]
 
 [project.scripts]
 architect = "src.main:main"
+architect-ui = "src.ui.app:main"
