@@ -135,9 +135,20 @@ def main_app() -> None:
     # --- Sidebar ---
     with st.sidebar:
         st.header("⚙️ Configuration")
-        openai_key = st.text_input("OpenAI API Key", type="password")
-        if openai_key:
-            os.environ["OPENAI_API_KEY"] = openai_key
+        groq_key = st.text_input("Groq API Key", type="password")
+        if groq_key:
+            os.environ["GROQ_API_KEY"] = groq_key
+
+        model_choice = st.selectbox(
+            "Model",
+            options=[
+                "llama-3.3-70b-versatile",
+                "llama-3.1-8b-instant",
+                "mixtral-8x7b-32768",
+                "gemma2-9b-it",
+            ],
+        )
+        os.environ["LLM_MODEL"] = model_choice
 
         tavily_key = st.text_input("Tavily API Key (optional)", type="password")
         if tavily_key:
@@ -151,7 +162,7 @@ def main_app() -> None:
 
         with st.expander("ℹ️ How to use"):
             st.markdown(
-                "1. Enter your **OpenAI API Key** above (or set it in a `.env` file).\n"
+                "1. Enter your **Groq API Key** above (or set it in a `.env` file).\n"
                 "2. Optionally enter a **Tavily API Key** for web search.\n"
                 "3. Type your backend requirements in the main area.\n"
                 "4. Click **🚀 Generate Backend** to start the pipeline.\n"
@@ -175,10 +186,10 @@ def main_app() -> None:
     generate_clicked = st.button("🚀 Generate Backend")
 
     if generate_clicked:
-        if not os.environ.get("OPENAI_API_KEY"):
+        if not os.environ.get("GROQ_API_KEY"):
             load_dotenv()
-        if not os.environ.get("OPENAI_API_KEY"):
-            st.error("❌ OpenAI API Key is required. Enter it in the sidebar or set OPENAI_API_KEY in your environment.")
+        if not os.environ.get("GROQ_API_KEY"):
+            st.error("❌ Groq API Key is required. Enter it in the sidebar or set GROQ_API_KEY in your environment.")
             return
         if not prompt.strip():
             st.error("❌ Please enter your backend requirements.")

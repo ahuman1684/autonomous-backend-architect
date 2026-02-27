@@ -26,8 +26,11 @@ search = [
 ui = [
     "streamlit>=1.38.0",
 ]
+groq = [
+    "langchain-groq>=0.2.0",
+]
 all = [
-    "autonomous-backend-architect[dev,search,ui]",
+    "autonomous-backend-architect[dev,search,ui,groq]",
 ]
 
 [project.scripts]
