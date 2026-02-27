@@ -23,6 +23,9 @@ You MUST follow these rules:
 If review feedback is provided, you MUST address every single point listed. Do not 
 ignore any feedback item.
 
+If any feedback item starts with [TEST FAILURE], those are actual Jest test execution 
+errors. Fix the production code so that all reported tests pass.
+
 Do NOT generate database migration files. The schema is already provided."""
 
 DEVELOPER_USER_PROMPT = """Generate the Node.js/Express backend for the following system.

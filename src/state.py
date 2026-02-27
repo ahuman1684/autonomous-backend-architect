@@ -14,6 +14,8 @@ class GraphState(TypedDict):
         review_feedback: A list of critiques/errors found by the reviewer.
         iterations: Counter to prevent infinite correction loops.
         final_status: Whether the code was 'approved' or 'max_iterations_reached'.
+        test_results: Raw stdout/stderr captured from running `npm test`.
+        test_status: Outcome of the test run — 'passed', 'failed', or 'skipped'.
     """
     requirements: str
     db_schema: str
@@ -22,3 +24,5 @@ class GraphState(TypedDict):
     iterations: int
     final_status: str
     output_dir: str  # Path to the directory where generated files are written
+    test_results: str  # Raw stdout/stderr from `npm test` execution
+    test_status: str   # Either "passed", "failed", or "skipped"

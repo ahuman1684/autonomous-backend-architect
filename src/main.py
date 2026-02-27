@@ -33,6 +33,8 @@ def run(prompt: str, output_dir: str = "./output") -> dict:
         "iterations": 0,
         "final_status": "pending",
         "output_dir": output_dir,
+        "test_results": "",
+        "test_status": "",
     }
 
     # Stream events for visibility
@@ -52,6 +54,9 @@ def run(prompt: str, output_dir: str = "./output") -> dict:
     print(f"   Status:     {status}")
     print(f"   Iterations: {iterations}")
     print(f"   Output dir: {os.path.abspath(out_dir)}")
+    test_status = final_state.get("test_status", "")
+    if test_status:
+        print(f"   Tests:      {test_status}")
 
     generated_files = []
     if os.path.isdir(out_dir):
