@@ -6,6 +6,7 @@ from src.nodes.architect import architect_node
 from src.nodes.developer import developer_node
 from src.nodes.reviewer import reviewer_node
 from src.nodes.integration import integration_node
+from src.nodes.tdd_test import tdd_test_node
 
 MAX_ITERATIONS = 3
 
@@ -31,6 +32,27 @@ def should_continue(state: GraphState) -> str:
     return "developer_node"
 
 
+def should_continue_after_tests(state: GraphState) -> str:
+    """Conditional edge after TDD node: route to END or loop back to developer.
+
+    Returns:
+        'end' if tests passed, were skipped, or max iterations reached.
+        'developer_node' if tests failed and iterations remain.
+    """
+    test_status = state.get("test_status", "")
+
+    if test_status in ("passed", "skipped"):
+        return "end"
+
+    # Tests failed
+    if state.get("iterations", 0) >= MAX_ITERATIONS:
+        print(f"\n🛑 Max iterations ({MAX_ITERATIONS}) reached after test failure. Stopping.")
+        return "end"
+
+    print(f"\n🔄 Tests failed — looping back to developer (iteration {state.get('iterations', 0)}/{MAX_ITERATIONS})")
+    return "developer_node"
+
+
 def build_graph() -> StateGraph:
     """Constructs and compiles the LangGraph workflow.
     
@@ -44,6 +66,7 @@ def build_graph() -> StateGraph:
     workflow.add_node("developer_node", developer_node)
     workflow.add_node("reviewer_node", reviewer_node)
     workflow.add_node("integration_node", integration_node)
+    workflow.add_node("tdd_test_node", tdd_test_node)
 
     # --- Add Edges ---
     # START → Architect → Developer → Reviewer
@@ -51,7 +74,7 @@ def build_graph() -> StateGraph:
     workflow.add_edge("architect_node", "developer_node")
     workflow.add_edge("developer_node", "reviewer_node")
 
-    # Conditional: Reviewer → Developer (loop) OR → Integration → END
+    # Conditional: Reviewer → Developer (loop) OR → Integration
     workflow.add_conditional_edges(
         "reviewer_node",
         should_continue,
@@ -60,6 +83,13 @@ def build_graph() -> StateGraph:
             "integration_node": "integration_node",
         },
     )
-    workflow.add_edge("integration_node", END)
+
+    # Integration → TDD → END or back to Developer
+    workflow.add_edge("integration_node", "tdd_test_node")
+    workflow.add_conditional_edges(
+        "tdd_test_node",
+        should_continue_after_tests,
+        {"developer_node": "developer_node", "end": END},
+    )
 
     return workflow.compile()
