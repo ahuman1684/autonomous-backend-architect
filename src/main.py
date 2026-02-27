@@ -1,15 +1,17 @@
 """Entry point for the Autonomous Backend Architect."""
 
-import sys
+import argparse
+import os
 from dotenv import load_dotenv
 from src.graph import build_graph
 
 
-def run(prompt: str) -> dict:
+def run(prompt: str, output_dir: str = "./output") -> dict:
     """Runs the full architect pipeline for a given prompt.
     
     Args:
         prompt: High-level description of the backend to build.
+        output_dir: Directory where generated files will be written.
     
     Returns:
         The final graph state containing schema, code, and status.
@@ -30,6 +32,7 @@ def run(prompt: str) -> dict:
         "review_feedback": [],
         "iterations": 0,
         "final_status": "pending",
+        "output_dir": output_dir,
     }
 
     # Stream events for visibility
@@ -45,10 +48,22 @@ def run(prompt: str) -> dict:
     print("=" * 60)
     status = final_state.get("final_status", "unknown")
     iterations = final_state.get("iterations", 0)
+    out_dir = final_state.get("output_dir", output_dir)
     print(f"   Status:     {status}")
     print(f"   Iterations: {iterations}")
-    print(f"   Schema:     {len(final_state.get('db_schema', ''))} chars")
-    print(f"   Code:       {len(final_state.get('server_code', ''))} chars")
+    print(f"   Output dir: {os.path.abspath(out_dir)}")
+
+    generated_files = []
+    if os.path.isdir(out_dir):
+        for root, _, fnames in os.walk(out_dir):
+            for fname in fnames:
+                rel = os.path.relpath(os.path.join(root, fname), out_dir)
+                generated_files.append(rel)
+
+    if generated_files:
+        print("\n📁 Generated files:")
+        for f in sorted(generated_files):
+            print(f"   • {f}")
 
     if status == "approved":
         print("\n✅ Backend generated and approved!")
@@ -61,20 +76,25 @@ def run(prompt: str) -> dict:
 
 def main():
     """CLI entry point."""
-    if len(sys.argv) > 1:
-        prompt = " ".join(sys.argv[1:])
+    parser = argparse.ArgumentParser(description="Autonomous Backend Architect")
+    parser.add_argument(
+        "prompt",
+        nargs="*",
+        help="High-level description of the backend to build",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="./output",
+        help="Directory to write generated files (default: ./output)",
+    )
+    args = parser.parse_args()
+
+    if args.prompt:
+        prompt = " ".join(args.prompt)
     else:
         prompt = input("Enter your backend requirements: ")
 
-    result = run(prompt)
-
-    # Write output files
-    with open("output_schema.sql", "w") as f:
-        f.write(result.get("db_schema", ""))
-    with open("output_server_code.md", "w") as f:
-        f.write(result.get("server_code", ""))
-
-    print("\n📁 Files written: output_schema.sql, output_server_code.md")
+    run(prompt, output_dir=args.output_dir)
 
 
 if __name__ == "__main__":

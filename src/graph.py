@@ -5,6 +5,7 @@ from src.state import GraphState
 from src.nodes.architect import architect_node
 from src.nodes.developer import developer_node
 from src.nodes.reviewer import reviewer_node
+from src.nodes.integration import integration_node
 
 MAX_ITERATIONS = 3
 
@@ -14,16 +15,16 @@ def should_continue(state: GraphState) -> str:
     
     Returns:
         'developer_node' if there are unresolved issues and iterations remain.
-        'end' if code is approved or max iterations reached.
+        'integration_node' if code is approved or max iterations reached.
     """
     # Code approved — no feedback
     if not state.get("review_feedback"):
-        return "end"
+        return "integration_node"
 
     # Max iterations reached — fail gracefully
     if state.get("iterations", 0) >= MAX_ITERATIONS:
         print(f"\n🛑 Max iterations ({MAX_ITERATIONS}) reached. Stopping.")
-        return "end"
+        return "integration_node"
 
     # Still have feedback to address
     print(f"\n🔄 Looping back to developer (iteration {state['iterations']}/{MAX_ITERATIONS})")
@@ -42,6 +43,7 @@ def build_graph() -> StateGraph:
     workflow.add_node("architect_node", architect_node)
     workflow.add_node("developer_node", developer_node)
     workflow.add_node("reviewer_node", reviewer_node)
+    workflow.add_node("integration_node", integration_node)
 
     # --- Add Edges ---
     # START → Architect → Developer → Reviewer
@@ -49,14 +51,15 @@ def build_graph() -> StateGraph:
     workflow.add_edge("architect_node", "developer_node")
     workflow.add_edge("developer_node", "reviewer_node")
 
-    # Conditional: Reviewer → Developer (loop) OR → END
+    # Conditional: Reviewer → Developer (loop) OR → Integration → END
     workflow.add_conditional_edges(
         "reviewer_node",
         should_continue,
         {
             "developer_node": "developer_node",
-            "end": END,
+            "integration_node": "integration_node",
         },
     )
+    workflow.add_edge("integration_node", END)
 
     return workflow.compile()

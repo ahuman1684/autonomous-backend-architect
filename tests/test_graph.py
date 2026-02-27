@@ -5,7 +5,7 @@ from src.graph import build_graph, should_continue
 
 
 def test_should_continue_approved():
-    """When no feedback exists, the graph should route to END."""
+    """When no feedback exists, the graph should route to integration_node."""
     state = {
         "requirements": "test",
         "db_schema": "test",
@@ -13,8 +13,9 @@ def test_should_continue_approved():
         "review_feedback": [],
         "iterations": 1,
         "final_status": "approved",
+        "output_dir": "./output",
     }
-    assert should_continue(state) == "end"
+    assert should_continue(state) == "integration_node"
 
 
 def test_should_continue_with_feedback():
@@ -26,12 +27,13 @@ def test_should_continue_with_feedback():
         "review_feedback": ["Fix SQL injection"],
         "iterations": 1,
         "final_status": "",
+        "output_dir": "./output",
     }
     assert should_continue(state) == "developer_node"
 
 
 def test_should_continue_max_iterations():
-    """When max iterations reached, route to END regardless of feedback."""
+    """When max iterations reached, route to integration_node regardless of feedback."""
     state = {
         "requirements": "test",
         "db_schema": "test",
@@ -39,8 +41,9 @@ def test_should_continue_max_iterations():
         "review_feedback": ["Still broken"],
         "iterations": 3,
         "final_status": "",
+        "output_dir": "./output",
     }
-    assert should_continue(state) == "end"
+    assert should_continue(state) == "integration_node"
 
 
 def test_graph_compiles():
